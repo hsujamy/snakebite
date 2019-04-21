@@ -84,7 +84,10 @@ class HDFSConfig(object):
 
         namenodes = []
         for property in cls.read_hadoop_config(hdfs_site_path):
-            if property.findall('name')[0].text.startswith("dfs.namenode.rpc-address"):
+            pattern = "dfs.namenode.rpc-address"
+            if cls.nameservice_name != '':
+                pattern = "dfs.namenode.rpc-address.%s." % cls.nameservice_name
+            if property.findall('name')[0].text.startswith(pattern):
                 parse_result = urlparse("//" + property.findall('value')[0].text)
                 log.debug("Got namenode '%s' from %s" % (parse_result.geturl(), hdfs_site_path))
                 namenodes.append({"namenode": parse_result.hostname,
@@ -129,8 +132,20 @@ class HDFSConfig(object):
                       '/usr/local/etc/hadoop/conf/hdfs-site.xml',
                       '/usr/local/hadoop/conf/hdfs-site.xml')
 
+    nameservice_name = ''
+
     @classmethod
-    def get_external_config(cls):
+    def get_external_config(cls, spec_core_path=None, spec_hdfs_path=None, spec_nameservice=''):
+        if spec_core_path is not None:
+            log.debug("use spec_core_path:%s" % spec_core_path)
+            cls.core_try_paths = spec_core_path
+        if spec_hdfs_path is not None:
+            log.debug("use spec_hdfs_path:%s" % spec_hdfs_path)
+            cls.hdfs_try_paths = spec_hdfs_path
+        if spec_nameservice != '':
+            log.debug("use spec_nameservice:%s" % spec_nameservice)
+            cls.nameservice_name = spec_nameservice
+        
         if os.environ.get('HADOOP_HOME'):
             hdfs_path = os.path.join(os.environ['HADOOP_HOME'], 'conf', 'hdfs-site.xml')
             cls.hdfs_try_paths = (hdfs_path,) + cls.hdfs_try_paths

@@ -1566,7 +1566,7 @@ class AutoConfigClient(HAClient):
         Different Hadoop distributions use different protocol versions. Snakebite defaults to 9, but this can be set by passing
         in the ``hadoop_version`` parameter to the constructor.
     '''
-    def __init__(self, hadoop_version=Namenode.DEFAULT_VERSION, effective_user=None, use_sasl=False):
+    def __init__(self, hadoop_version=Namenode.DEFAULT_VERSION, effective_user=None, use_sasl=False, hdfs_site_path=None, nameservice=''):
         '''
         :param hadoop_version: What hadoop protocol version should be used (default: 9)
         :type hadoop_version: int
@@ -1576,7 +1576,7 @@ class AutoConfigClient(HAClient):
         :type use_sasl: boolean
         '''
 
-        configs = HDFSConfig.get_external_config()
+        configs = HDFSConfig.get_external_config(None, hdfs_site_path, nameservice)
         nns = [Namenode(nn['namenode'], nn['port'], hadoop_version) for nn in configs['namenodes']]
         if not nns:
             raise InvalidInputException("List of namenodes is empty - couldn't create the client")
